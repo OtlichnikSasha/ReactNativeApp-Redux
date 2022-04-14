@@ -1,0 +1,6566 @@
+
+openapi: 3.0.1
+info:
+  title: NEO-2 
+  description: 'API для NEO-2'
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8088'
+security:
+  - bearerAuth: []
+tags:
+  - name: auth
+    description: operations with login
+  - name: orders
+    description: operations with orders
+  - name: subOrders
+    description: operations with sub orders
+  - name: modules
+    description: operations with sub orders
+  - name: details
+    description: operations with sub orders
+  - name: points
+    description: operations with points
+  - name: employees
+    description: operations with employees
+  - name: mobileUsers
+    description: operations with mobile users
+  - name: steps
+    description: operations with steps
+  - name: events
+    description: operations with events
+  - name: buffer
+    description: operations with buffer
+  - name: defect
+    description: operations with defect
+  - name: file
+    description: operations with files
+  - name: orderType
+    description: operations with orderTypes
+  - name: settings
+    description: operations with settings
+  - name: webHookToken
+    description: operations with settings
+  - name: ws
+    description: connect to websocket
+  - name: packs
+    description: operations with packs
+  - name: packDetails
+    description: operations with packDetails
+  - name: telegramUsers
+    description: operations with telegramUsers
+  - name: warehouses
+    description: warehouse operations
+  - name: transitWarehouses
+    description: operations with transit warehouses
+  - name: sections
+    description: operations with sections
+paths:
+  /api/ws:
+    get:
+      tags:
+        - ws
+      operationId: newWebsocket
+      summary: connect to websocket
+  /api/search/entity:
+    get:
+      tags:
+        - orders
+        - subOrders
+        - modules
+        - details
+      summary:  search entity
+      operationId: searchEntity
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: entity
+          in: query
+          schema:
+            type: string
+            enum:
+            - order
+            - subOrder
+            - module
+            - detail
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: object
+                    properties:
+                      entity:
+                        type: string
+                        enum:
+                          - order
+                          - subOrder
+                          - module
+                          - detail
+                      data:
+                        oneOf:
+                          - $ref: '#/components/schemas/Order'
+                          - $ref: '#/components/schemas/SubOrder'
+                          - $ref: '#/components/schemas/Module'
+                          - $ref: '#/components/schemas/Detail'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/telegramUsers:
+    delete:
+      tags:
+        - telegramUsers
+      summary: delete telegram user
+      operationId: deleteTelegramUser
+      parameters:
+        - name: masterID
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - telegramUsers
+      summary: add telegram user
+      operationId: addTelegramUser
+      parameters:
+        - name: masterID
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    $ref: '#/components/schemas/TelegramUserResponse'
+                  duration:
+                    type: number
+                    format: float
+  /api/telegramUsers/{masterID}/send:
+    get:
+      tags:
+        - telegramUsers
+      summary: send telegram message
+      operationId: sendTelegramMessage
+      parameters:
+        - name: masterID
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: message
+          in: query
+          description: message
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/telegramUsers/callMaster:
+    get:
+      tags:
+        - telegramUsers
+      summary: call master
+      operationId: callMaster
+      parameters:
+        - name: pointID
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: groupID
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: subOrderID
+          in: query
+          schema:
+            type: integer
+            format: int64   
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/upload:
+    post:
+      tags:
+        - file
+      summary: upload file
+      operationId: uploadFile
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum:
+              - icon
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+        required: true
+      responses:
+        '200':
+          description: new file
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/File'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/auth/point/init:
+    get:
+      tags:
+        - auth
+        - points
+      summary: init point
+      operationId: initPoint
+      parameters:
+        - name: ip
+          in: query
+          schema:
+            type: string
+            format: ip
+        - name: hostname
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: new sub point
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                        format: uuid
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/auth/point/login:
+    post:
+      tags:
+        - auth
+        - points
+      summary: login point
+      operationId: loginPoint
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  format: uuid
+                ip:
+                  type: string
+                  format: ip
+                groupID:
+                  type: integer
+                  format: int64
+        required: true
+      responses:
+        '200':
+          description: new sub point
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: object
+                    properties:
+                      token: 
+                        type: string
+                        format: jwt
+                      point:
+                        $ref: '#/components/schemas/Point'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/auth/point/refresh:
+    post:
+      tags:
+        - auth
+        - points
+      summary: refresh token
+      operationId: pointRefreshToken
+      responses:
+        '200':
+          description: new sub point
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: object
+                    properties:
+                      token: 
+                        type: string
+                        format: jwt
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/auth/refresh:
+    post:
+      tags:
+        - auth
+      summary: refresh token
+      operationId: refreshToken
+      responses:
+        '200':
+          description: new sub point
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: object
+                    properties:
+                      token: 
+                        type: string
+                        format: jwt
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/auth/login:
+    post:
+      tags:
+        - auth
+      summary: login
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                password:
+                  type: string
+                  format: password
+        required: true
+      responses:
+        '200':
+          description: new sub point
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: object
+                    properties:
+                      token: 
+                        type: string
+                        format: jwt
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/apiToken:
+    get:
+      tags:
+        - auth
+      summary: get permanent token, only admin
+      operationId: getPermanentToken
+      responses:
+        '200':
+          description: new token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: object
+                    properties:
+                      token: 
+                        type: string
+                        format: jwt
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/history:
+    get:
+      tags:
+        - events
+      summary: get events
+      operationId: getEvents
+      parameters:
+        - name: entity
+          in: query
+          schema:
+            type: string
+        - name: entityID
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EventItem'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/subOrders/join:
+    post:
+      tags:
+        - subOrders
+      summary: join sub order
+      operationId: joinSubOrder
+      parameters:
+        - name: subOrderID
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+      responses:
+        '200':
+          description: new sub order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/SubOrder'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/subOrders/split:
+    post:
+      tags:
+        - subOrders
+      summary: split sub order
+      operationId: splitSubOrder
+      parameters:
+        - name: stepID
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                modules:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+                details:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      ID:
+                        type: integer
+                        format: int64
+                      count:
+                        type: number
+                        format: float
+                isDefect:
+                  type: boolean
+                reasons:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+                time:
+                  type: string
+                  format: date-time
+                  nullable: true
+              required: [modules, details, isDefect]
+        required: true
+      responses:
+        '200':
+          description: new sub order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/SubOrder'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/subOrders/joinByPoint:
+    post:
+      tags:
+        - subOrders
+      summary: join sub orders by point id and step id
+      operationId: joinSubOrderByPoint
+      parameters:
+        - name: pointID
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: stepID
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: new sub orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SubOrder'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/subOrders/{id}/defect:
+    get:
+      tags:
+        - subOrders
+      summary: defect subOrder
+      operationId: defectSubOrder
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/subOrders/{id}/finish:
+    get:
+      tags:
+        - subOrders
+      summary: finish step subOrder
+      operationId: finishSubOrder
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/subOrders/{id}/pause:
+    get:
+      tags:
+        - subOrders
+      summary: pause subOrder
+      operationId: pauseSubOrder
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/subOrders/{id}/start:
+    get:
+      tags:
+        - subOrders
+      summary: start subOrder
+      operationId: startSubOrder
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/subOrders/{id}/cancel:
+    delete:
+      tags:
+        - subOrders
+      summary: cancel subOrder
+      operationId: cancelSubOrder
+      parameters:
+        - name: id
+          in: path
+          description: for cancel
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    enum:
+                      - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/subOrders/{id}/toShipment:
+    get:
+      tags:
+        - subOrders
+      summary: to shipment step subOrder
+      operationId: toShipmentSubOrder
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    enum:
+                      - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/points/{id}/addSubOrder:
+    get:
+      tags:
+        - points
+        - subOrders
+      summary: add sub order to point
+      operationId: addSubOrderToPoint
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: subOrderID
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: moveTo
+          in: query
+          description: for move
+          required: true
+          schema:
+            type: integer
+            format: int64 
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/points/groups:
+    get:
+      tags:
+        - employees
+        - points
+      summary: get groups by point uuid
+      operationId: getGroupsByPointUUID
+      parameters:
+        - name: uuid
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: groups
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Group'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+
+  /api/pointInfo:
+    post:
+      tags:
+        - points
+      summary: add new pointInfo
+      operationId: addPointInfo
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PointInfo'
+        required: true
+      responses:
+        '200':
+          description: new point info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/PointInfo'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - points
+      summary: get point info 
+      operationId: getPointInfos
+      parameters:
+        - name: uuid
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: sector
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PointInfo'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/points/{id}/reset:
+    get:
+      tags:
+        - points
+      summary: reset point
+      operationId: resetPoint
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/points:
+    delete:
+      tags:
+        - points
+      summary: delete point
+      operationId: deletePoint
+      parameters:
+        - name: id
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    put:
+      tags:
+        - points
+      summary: update point
+      operationId: updatePoint
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/Point'
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/Point'
+        required: true
+      responses:
+        '200':
+          description: updated point
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    oneOf:
+                      - $ref: '#/components/schemas/Point'
+                      - type: array
+                        items:
+                          $ref: '#/components/schemas/Point'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - points
+      summary: add new point
+      operationId: addPoint
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Point'
+        required: true
+      responses:
+        '200':
+          description: new sub point
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/Point'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - points
+      summary: get points
+      operationId: getPoints
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: sectorID
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: uuid
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: sector
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Point'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/groups:
+    delete:
+      tags:
+        - employees
+      summary: delete group
+      operationId: deleteGroup
+      parameters:
+        - name: id
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    put:
+      tags:
+        - employees
+      summary: update group
+      operationId: updateGroup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Group'
+        required: true
+      responses:
+        '200':
+          description: updated group
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/Group'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - employees
+      summary: add new group
+      operationId: addGroup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Group'
+        required: true
+      responses:
+        '200':
+          description: new group
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/Group'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - employees
+      summary: get groups
+      operationId: getGroups
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: groups
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Group'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/groups/groupEvent:
+    get:
+      tags:
+        - employees
+      summary: get group events
+      operationId: getGroupEvents
+      parameters:
+        - name: groupID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: pointID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: sectorID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: since
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: groups
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GroupEvent'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/groups/groupEvent/start:
+    post:
+      tags:
+        - employees
+      summary: make group start event
+      operationId: makeGroupEventStart
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupEvent'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    enum:
+                      - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/groups/groupEvent/end:
+    post:
+      tags:
+        - employees
+      summary: make group end event
+      operationId: makeGroupEventEnd
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupEvent'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    enum:
+                      - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/groups/groupOnPoint:
+    get:
+      tags:
+        - employees
+      summary: get groups on points
+      operationId: getGroupsOnPoints
+      responses:
+        '200':
+          description: groups
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GroupOnPoint'
+                  duration:
+                    type: number
+                    format: float
+  /api/employees:
+    delete:
+      tags:
+        - employees
+      summary: delete employee
+      operationId: deleteEmployee
+      parameters:
+        - name: id
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    put:
+      tags:
+        - employees
+      summary: update employee
+      operationId: updateEmployee
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Employee'
+        required: true
+      responses:
+        '200':
+          description: updated employee
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/Employee'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - employees
+      summary: add new employee
+      operationId: addEmployee
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Employee'
+        required: true
+      responses:
+        '200':
+          description: new employee
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/Employee'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - employees
+      summary: get employees
+      operationId: getEmployees
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: groupID
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum:
+              - worker
+              - master
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: employees
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Employee'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/mobileUsers:
+    delete:
+      tags:
+        - mobileUsers
+      summary: delete mobile user
+      operationId: deleteMobileUser
+      parameters:
+        - name: id
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    enum:
+                      - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    put:
+      tags:
+        - mobileUsers
+      summary: update mobile user
+      operationId: updateMobileUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MobileUser'
+        required: true
+      responses:
+        '200':
+          description: updated mobile user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    $ref: '#/components/schemas/MobileUser'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - mobileUsers
+      summary: add new mobile user
+      operationId: addMobileUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MobileUser'
+        required: true
+      responses:
+        '200':
+          description: new mobile user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    $ref: '#/components/schemas/MobileUser'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - mobileUsers
+      summary: get mobile users
+      operationId: getMobileUsers
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: role
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: mobile users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MobileUser'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/employees/{id}/changePassword:
+    post:
+      tags:
+        - employees
+      summary: change employee password
+      operationId: changePassword
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+              properties:
+                password:
+                  type: string
+        required: true
+      responses:
+        '200':
+          description: change employee password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/employees/categories:
+    delete:
+      tags:
+        - employees
+      summary: delete employee category
+      operationId: deleteEmployeeCategory
+      parameters:
+        - name: id
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    put:
+      tags:
+        - employees
+      summary: update employee category
+      operationId: updateEmployeeCategory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeCategory'
+        required: true
+      responses:
+        '200':
+          description: updated employee category
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/EmployeeCategory'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - employees
+      summary: add new employee category
+      operationId: addEmployeeCategory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeCategory'
+        required: true
+      responses:
+        '200':
+          description: new employee category
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/EmployeeCategory'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - employees
+      summary: get employee categories
+      operationId: getEmployeeCategorys
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: groupID
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum:
+              - worker
+              - master
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: employeeCategory
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EmployeeCategory'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/sectors:
+    delete:
+      deprecated: true
+      tags:
+        - points
+      summary: delete sector
+      operationId: deleteSector
+      parameters:
+        - name: id
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    put:
+      tags:
+        - points
+      summary: update sector
+      operationId: updateSector
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Sector'
+        required: true
+      responses:
+        '200':
+          description: updated sector
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/Sector'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - points
+      summary: add new sector
+      operationId: addSector
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Sector'
+        required: true
+      responses:
+        '200':
+          description: new sub sector
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/Sector'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - points
+      summary: get sectors
+      operationId: getSectors
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: sector
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Sector'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/subOrders/{id}/move:
+    get:
+      tags:
+        - subOrders
+      summary: move sub order
+      operationId: moveToSubOrder
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: moveTo
+          in: query
+          description: for move
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/subOrders:
+    delete:
+      tags:
+        - subOrders
+      summary: delete sub order
+      operationId: deleteSubOrder
+      parameters:
+        - name: id
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    put:
+      tags:
+        - subOrders
+      summary: update sub order
+      operationId: updateSubOrder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/SubOrder'
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/SubOrder'
+        required: true
+      responses:
+        '200':
+          description: updated sub order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    oneOf:
+                      - $ref: '#/components/schemas/SubOrder'
+                      - type: array
+                        items:
+                          $ref: '#/components/schemas/SubOrder'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - subOrders
+      summary: add new sub order
+      operationId: addSubOrder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubOrder'
+        required: true
+      responses:
+        '200':
+          description: new sub order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/SubOrder'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - subOrders
+      summary: get sub orders
+      operationId: getSubOrders
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: status
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: orderID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: pointID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: sectorID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: sub orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SubOrder'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/subOrders/getFinished:
+    get:
+      tags:
+        - subOrders
+      summary: get finished sub orders
+      operationId: getFinishedSubOrders
+      parameters:
+        - name: stepID
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: sub orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SubOrder'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/packs:
+    delete:
+      tags:
+        - packs
+      summary: delete pack
+      operationId: deletePack
+      parameters:
+        - name: id
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - packs
+      summary: get packs
+      operationId: getPacks
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: status
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: orderID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: subOrderID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: groupID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: storageCellID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: withDetails
+          in: query
+          schema:
+            type: boolean
+        - name: code
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: orderNumber
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: packs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Pack'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - packs
+      summary: add new pack
+      operationId: addPack
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Pack'
+        required: true
+      responses:
+        '200':
+          description: new pack
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/Pack'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    put:
+      tags:
+        - packs
+      summary: update pack
+      operationId: updatePack
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/Pack'
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/Pack'
+        required: true
+      responses:
+        '200':
+          description: updated pack
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    oneOf:
+                      - $ref: '#/components/schemas/Pack'
+                      - type: array
+                        items:
+                          $ref: '#/components/schemas/Pack'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/packs/orders/{id}:
+    get:
+      tags:
+        - packs
+      summary: get packs by order id
+      operationId: getPacksByOrderID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: packs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrderWithPacks'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/packs/orders/:
+    get:
+      tags:
+        - packs
+      summary: get packs with structure
+      operationId: getPacksWithStructure
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: packs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/OrdersWithPacks'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/packs/addDetails:
+    post:
+      tags:
+        - packs
+      summary: add new pack details
+      operationId: addDetails
+      requestBody:
+        content:
+          application/json:
+            schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubOrderWithPackDetails'
+        required: true
+      responses:
+        '200':
+          description: new pack
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/Pack'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+
+  /api/packDetails:
+    delete:
+      tags:
+        - packDetails
+      summary: delete pack detail
+      operationId: deletePackDetail
+      parameters:
+        - name: id
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - packDetails
+      summary: get pack details
+      operationId: getPackDetails
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: detailID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: packID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64       
+      responses:
+        '200':
+          description: packs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PackDetail'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - packDetails
+      summary: add new pack detail
+      operationId: addPackDetail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PackDetail'
+        required: true
+      responses:
+        '200':
+          description: new pack detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/PackDetail'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    put:
+      tags:
+        - packDetails
+      summary: update pack detail
+      operationId: updatePackDetail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/PackDetail'
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/PackDetail'
+        required: true
+      responses:
+        '200':
+          description: updated pack detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    oneOf:
+                      - $ref: '#/components/schemas/PackDetail'
+                      - type: array
+                        items:
+                          $ref: '#/components/schemas/PackDetail'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/orders/{id}/cancel:
+    get:
+      tags:
+        - orders
+      summary: cancel order by id
+      operationId: cancelOrderByID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: string
+                    enum:
+                      - OK
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/orders/info:
+    get:
+      tags:
+        - orders
+      summary: get order info by number
+      operationId: getOrderInfo
+      parameters:
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: number
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: typeID
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: year
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/Order'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/orders/reload:
+    get:
+      tags:
+        - orders
+      summary: reload order by number
+      operationId: reloadOrderByNumbers
+      parameters:
+        - name: number
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/orders/{id}/reload:
+    get:
+      tags:
+        - orders
+      summary: reload order by id
+      operationId: reloadOrderByID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: object
+                    properties:
+                      order:
+                        $ref: '#/components/schemas/Order'
+                      status:
+                        type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/orders/load:
+    get:
+      tags:
+        - orders
+      summary: load order by number
+      operationId: loadOrder
+      parameters:
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: number
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: typeID
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: year
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: object
+                    properties:
+                      order:
+                        $ref: '#/components/schemas/Order'
+                      status:
+                        type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/orders:
+    delete:
+      tags:
+        - orders
+      summary: delete order
+      operationId: deleteOrder
+      parameters:
+        - name: id
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    put:
+      tags:
+        - orders
+      summary: update order
+      operationId: updateOrder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+        required: true
+      responses:
+        '200':
+          description: updated order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/Order'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - orders
+      summary: add new order
+      operationId: addOrder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+        required: true
+      responses:
+        '200':
+          description: new order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/Order'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - orders
+      summary: get orders
+      operationId: getOrders
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: status
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: since
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/modules/{id}/finish:
+    get:
+      tags:
+        - modules
+      summary: finish module
+      operationId: finishModule
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/modules/{id}/pause:
+    get:
+      tags:
+        - modules
+      summary: pause modules
+      operationId: pauseModule
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/modules/{id}/start:
+    get:
+      tags:
+        - modules
+      summary: start modules
+      operationId: startModule
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/details:
+    delete:
+      tags:
+        - details
+      summary: delete detail
+      operationId: deleteDetail
+      parameters:
+        - name: id
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    put:
+      tags:
+        - details
+      summary: update detail
+      operationId: updateDetail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Detail'
+        required: true
+      responses:
+        '200':
+          description: updated detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/Detail'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - details
+      summary: add new detail
+      operationId: addDetail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Detail'
+        required: true
+      responses:
+        '200':
+          description: new detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/Detail'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - details
+      summary: get details
+      operationId: getDetails
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: status
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: orderID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: subOrderID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: moduleID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: pointID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: withoutFixing
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Detail'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/details/scan:
+    get:
+      tags:
+        - details
+      summary: scan details
+      operationId: scanDetail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ScanItem'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/details/{id}/finish:
+    get:
+      tags:
+        - details
+      summary: finish detail
+      operationId: finishDetail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/details/{id}/pause:
+    get:
+      tags:
+        - details
+      summary: pause detail
+      operationId: pauseDetail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/details/{id}/start:
+    get:
+      tags:
+        - details
+      summary: start detail
+      operationId: startDetail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/modules:
+    delete:
+      tags:
+        - modules
+      summary: delete module
+      operationId: deleteModule
+      parameters:
+        - name: id
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    put:
+      tags:
+        - modules
+      summary: update module
+      operationId: updateModule
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Module'
+        required: true
+      responses:
+        '200':
+          description: updated module
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/Module'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - modules
+      summary: add new module
+      operationId: addModule
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Module'
+        required: true
+      responses:
+        '200':
+          description: new module
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/Module'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - modules
+      summary: get modules
+      operationId: getModules
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: status
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: orderID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: subOrderID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: pointID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: modules
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Module'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/steps:
+    delete:
+      deprecated: true
+      tags:
+        - steps
+      summary: delete step
+      operationId: deleteStep
+      parameters:
+        - name: id
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    put:
+      tags:
+        - steps
+      summary: update step
+      operationId: updateStep
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Step'
+        required: true
+      responses:
+        '200':
+          description: updated step
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/Step'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - steps
+      summary: add new step
+      operationId: addStep
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Step'
+        required: true
+      responses:
+        '200':
+          description: new step
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/Step'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - steps
+      summary: get steps
+      operationId: getSteps
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: steps
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Step'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/buffer:
+    delete:
+      tags:
+        - buffer
+      summary: delete from buffer
+      operationId: deleteFromBuffer
+      parameters:
+        - name: id
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    put:
+      tags:
+        - buffer
+      summary: update buffer
+      operationId: updateBuffer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BufferItem'
+        required: true
+      responses:
+        '200':
+          description: updated buffer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/BufferItem'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - buffer
+      summary: add to buffer
+      operationId: addToBuffer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BufferItem'
+        required: true
+      responses:
+        '200':
+          description: new buffer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/BufferItem'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - buffer
+      summary: get from buffer
+      operationId: getFromBuffer
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: orderID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: buffer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BufferItem'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/defects:
+    delete:
+      tags:
+        - defect
+      summary: delete from defect
+      operationId: deleteDefectItem
+      parameters:
+        - name: id
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    put:
+      tags:
+        - defect
+      summary: update defect
+      operationId: updateDefectItem
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DefectItem'
+        required: true
+      responses:
+        '200':
+          description: updated defect
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/DefectItem'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - defect
+      summary: add to defect
+      operationId: addDefectItem
+      parameters:
+        - name: stepID
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: groupID
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: pointID
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DefectItem'
+        required: true
+      responses:
+        '200':
+          description: new defect
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/DefectItem'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - defect
+      summary: get from defect
+      operationId: getDefectItems
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: defect
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DefectItem'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/defects/reasons:
+    delete:
+      tags:
+        - defect
+        - settings
+      summary: delete defectReason
+      operationId: deleteDefectReason
+      parameters:
+        - name: id
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    put:
+      tags:
+        - defect
+        - settings
+      summary: update defectReason
+      operationId: updateDefectReason
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DefectReason'
+        required: true
+      responses:
+        '200':
+          description: updated defectReason
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/DefectReason'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - defect
+        - settings
+      summary: add new defectReason
+      operationId: addDefectReason
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DefectReason'
+        required: true
+      responses:
+        '200':
+          description: new defectReason
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/DefectReason'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - defect
+        - settings
+      summary: get defectReasons
+      operationId: getDefectReasons
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: entity
+          in: query
+          schema:
+            type: string
+            enum:
+              - subOrder
+              - module
+              - detail
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: defectReasons
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DefectReason'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/buffer/reasons:
+    delete:
+      tags:
+        - buffer
+        - settings
+      summary: delete bufferReason
+      operationId: deleteBufferReason
+      parameters:
+        - name: id
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    put:
+      tags:
+        - buffer
+        - settings
+      summary: update bufferReason
+      operationId: updateBufferReason
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BufferReason'
+        required: true
+      responses:
+        '200':
+          description: updated bufferReason
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/BufferReason'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - buffer
+        - settings
+      summary: add new bufferReason
+      operationId: addBufferReason
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BufferReason'
+        required: true
+      responses:
+        '200':
+          description: new bufferReason
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/BufferReason'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - buffer
+        - settings
+      summary: get bufferReasons
+      operationId: getBufferReasons
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: bufferReasons
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BufferReason'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/orderTypes:
+    delete:
+      tags:
+        - orderType
+        - settings
+      summary: delete orderType
+      operationId: deleteOrderType
+      parameters:
+        - name: id
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    put:
+      tags:
+        - orderType
+        - settings
+      summary: update orderType
+      operationId: updateOrderType
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderType'
+        required: true
+      responses:
+        '200':
+          description: updated orderType
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/OrderType'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - orderType
+        - settings
+      summary: add new orderType
+      operationId: addOrderType
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderType'
+        required: true
+      responses:
+        '200':
+          description: new orderType
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/OrderType'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - orderType
+        - settings
+      summary: get orderTypes
+      operationId: getOrderTypes
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: moduleID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: subOrderID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: pointID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: orderTypes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrderType'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/pointTypes:
+    get:
+      tags:
+        - settings
+      summary: get point types
+      operationId: getPointTypes
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: name
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description:  point types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PointType'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/status:
+    get:
+      tags:
+        - settings
+      summary: get status info
+      operationId: getStatusInfo
+      responses:
+        '200':
+          description: status info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                      $ref: '#/components/schemas/StatusInfo'
+                  duration:
+                    type: number
+                    format: float
+  /api/tokens:
+    delete:
+      tags:
+        - webHookToken
+      summary: delete webHookToken
+      operationId: deleteWebHookToken
+      parameters:
+        - name: id
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    enum:
+                    - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    put:
+      tags:
+        - webHookToken
+      summary: update webHookToken
+      operationId: updateWebHookToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebHookToken'
+        required: true
+      responses:
+        '200':
+          description: updated webHookToken
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/WebHookToken'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - webHookToken
+      summary: add new webHookToken
+      operationId: addWebHookToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebHookToken'
+        required: true
+      responses:
+        '200':
+          description: new webHookToken
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    $ref: '#/components/schemas/WebHookToken'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - webHookToken
+      summary: get webHookTokens
+      operationId: getWebHookTokens
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: webHookTokens
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WebHookToken'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /webhook/offline:
+    get:
+      tags:
+        - webHook
+      summary: get webHooks
+      operationId: getWebHooks
+      parameters:
+        - name: token
+          in: query
+          schema:
+            type: string
+          required: true
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: webHooks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WebHook'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/warehouses:
+    delete:
+      tags:
+        - warehouses
+      summary: delete warehouse
+      operationId: deleteWarehouse
+      parameters:
+        - name: id
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    enum:
+                      - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    put:
+      tags:
+        - warehouses
+      summary: update warehouse
+      operationId: updateWarehouse
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Warehouse'
+        required: true
+      responses:
+        '200':
+          description: updated warehouse
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    $ref: '#/components/schemas/Warehouse'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - warehouses
+      summary: add new warehouse
+      operationId: addWarehouse
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Warehouse'
+        required: true
+      responses:
+        '200':
+          description: new warehouse
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    $ref: '#/components/schemas/Warehouse'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - warehouses
+      summary: get warehouses
+      operationId: getWarehouses
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: warehouses
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Warehouse'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/storageCells:
+    delete:
+      tags:
+        - warehouses
+      summary: delete storage cell
+      operationId: deleteStorageCell
+      parameters:
+        - name: id
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    enum:
+                      - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    put:
+      tags:
+        - warehouses
+      summary: update storage cell
+      operationId: updateStorageCell
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StorageCell'
+        required: true
+      responses:
+        '200':
+          description: updated storage cell
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    $ref: '#/components/schemas/StorageCell'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - warehouses
+      summary: add new storage cell
+      operationId: addStorageCell
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StorageCell'
+        required: true
+      responses:
+        '200':
+          description: new storage cell
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    $ref: '#/components/schemas/StorageCell'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - warehouses
+      summary: get storage cells
+      operationId: getStorageCells
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: warehouseID
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: storage cells
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StorageCell'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/transitWarehouses:
+    delete:
+      tags:
+        - transitWarehouses
+      summary: delete transit warehouse
+      operationId: deleteTransitWarehouse
+      parameters:
+        - name: id
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    enum:
+                      - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    put:
+      tags:
+        - transitWarehouses
+      summary: update transit warehouse
+      operationId: updateTransitWarehouse
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransitWarehouse'
+        required: true
+      responses:
+        '200':
+          description: updated transit warehouse
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    $ref: '#/components/schemas/TransitWarehouse'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - transitWarehouses
+      summary: add new transit warehouse
+      operationId: addTransitWarehouse
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransitWarehouse'
+        required: true
+      responses:
+        '200':
+          description: new transit warehouse
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    $ref: '#/components/schemas/TransitWarehouse'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - transitWarehouses
+      summary: get transit warehouses
+      operationId: getTransitWarehouses
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: transit warehouses
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TransitWarehouse'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+  /api/sections:
+    delete:
+      tags:
+        - sections
+      summary: delete section
+      operationId: deleteSection
+      parameters:
+        - name: id
+          in: query
+          description: for delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    enum:
+                      - OK
+                    type: string
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    put:
+      tags:
+        - sections
+      summary: update section
+      operationId: updateSection
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Section'
+        required: true
+      responses:
+        '200':
+          description: updated section
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    $ref: '#/components/schemas/Section'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    post:
+      tags:
+        - sections
+      summary: add new section
+      operationId: addSection
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Section'
+        required: true
+      responses:
+        '200':
+          description: new section
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    $ref: '#/components/schemas/Section'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+    get:
+      tags:
+        - sections
+      summary: get section
+      operationId: getSections
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: limit
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: deleted
+          in: query
+          schema:
+            type: string
+            enum:
+              - true
+      responses:
+        '200':
+          description: sections
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Section'
+                  total:
+                    type: integer
+                  duration:
+                    type: number
+                    format: float
+components:
+  schemas:
+    Order:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        number:
+          description: "Номер"
+          type: string
+          nullable: true
+        year:
+          description: "Год"
+          type: integer
+          nullable: true
+        typeID:
+          type: integer
+          format: int64
+          nullable: true
+        meta:
+          nullable: true
+        startDate:
+          description: "Дата запуска"
+          type: string
+          format: date
+          nullable: true
+        predictDate:
+          description: "Прогнозная дата завершения"
+          type: string
+          format: date
+          nullable: true
+        type:
+          description: "Тип"
+          type: string
+          nullable: true
+        isChild:
+          description: "Дозаказ"
+          type: boolean
+          nullable: true
+        parentNumber:
+          description: "Номер дозаказа (если isChild == true)"
+          type: string
+          nullable: true
+        parentDate:
+          description: "Дата дозаказа (если isChild == true)"
+          type: string
+          format: date
+          nullable: true
+        cause:
+          description: "Причина рекламации (если type == 'Рекламация')"
+          type: string
+          nullable: true
+        contractNumber:
+          description: "Номер договора"
+          type: string
+          nullable: true
+        sum:
+          description: "Сумма"
+          type: number
+          format: float
+          nullable: true
+        payDate:
+          description: "Дата оплаты"
+          type: string
+          format: date
+          nullable: true
+        level:
+          description: "Уровень"
+          type: integer
+          nullable: true
+        comment:
+          description: "Комментарий"
+          type: string
+          nullable: true
+        client:
+          description: "Клиент покупателя"
+          type: string
+          nullable: true
+        customer:
+          description: "Покупатель"
+          type: string
+          nullable: true
+        assembly:
+          description: "Вариант упаковки"
+          type: string
+          nullable: true
+        responsible:
+          description: "Ответственный"
+          type: string
+          nullable: true
+        hardPoints:
+          description: "Баллы"
+          type: number
+          format: float
+          nullable: true
+        address:
+          description: "Адрес"
+          type: string
+          nullable: true
+        sourceNumber:
+          description: "Номер источника (предзаказ или рекламация)"
+          type: string
+          nullable: true
+        sketches:
+          type: array
+          items:
+            $ref: '#/components/schemas/File'
+    SubOrder:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        orderID:
+          type: integer
+          format: int64
+          nullable: true
+        position:
+          type: integer
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        step:
+          type: string
+          nullable: true
+        stepID:
+          type: integer
+          format: int64
+          nullable: true
+        name:
+          type: string
+        pointID:
+          type: integer
+          format: int64
+          nullable: true
+        isDefect:
+          type: boolean
+          nullable: true
+        isComplete:
+          type: boolean
+          nullable: true
+        meta:
+          nullable: true
+        comment:
+          description: "Комментарий"
+          type: string
+          nullable: true
+        commentForMaster:
+          description: "Комментарий для бригадира"
+          type: string
+          nullable: true
+        commentFromMaster:
+          description: "Комментарий бригадира"
+          type: string
+          nullable: true
+        hardPoints:
+          description: "Баллы"
+          type: number
+          format: float
+          nullable: true
+        detailsCount:
+          type: integer
+          format: int64
+          nullable: true
+        modulesCount:
+          type: integer
+          format: int64
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+          nullable: true
+        defectInfo:
+          $ref: '#/components/schemas/DefectInfo'
+    Module:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        subOrderID:
+          type: integer
+          format: int64
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        meta:
+          nullable: true
+        type:
+          description: "Тип"
+          type: string
+          nullable: true
+        position:
+          description: "Позиция"
+          type: integer
+          nullable: true
+        code:
+          description: "Штрихкод"
+          type: string
+          nullable: true
+        name:
+          description: "Наименование"
+          type: string
+          nullable: true
+        isAssembly:
+          description: "В сборе"
+          type: boolean
+          nullable: true
+        comment:
+          description: "Комментарий"
+          type: string
+          nullable: true
+        label:
+          description: "(Важная информация)"
+          type: string
+          nullable: true
+        count:
+          description: "Количество"
+          type: number
+          format: float
+          nullable: true
+        size:
+          description: "Габариты"
+          type: string
+          nullable: true
+        packageMaterial:
+          description: "Корпус"
+          type: string
+          nullable: true
+        description:
+          description: "Описание"
+          type: string
+          nullable: true
+        color:
+          description: "Цвета"
+          type: string
+          nullable: true
+        isNonStandart:
+          description: "Нестандарт"
+          type: boolean
+          nullable: true
+        parameters:
+          description: "Параметры"
+          type: string
+          nullable: true
+        length:
+          description: "Общая длина"
+          type: number
+          format: float
+          nullable: true
+        select:
+          description: "Тип длинномера"
+          type: string
+          nullable: true
+        vendorCode:
+          description: "Артикул"
+          type: string
+          nullable: true
+        unit:
+          description: "Единица измерения"
+          type: string
+          nullable: true
+        is_bazis:
+          description: "Нарисован в базисе"
+          type: boolean
+          nullable: true
+        detailsCount:
+          type: integer
+          format: int64
+          nullable: true
+        sketches:
+          type: array
+          items:
+            $ref: '#/components/schemas/File'
+    Detail:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        moduleID:
+          type: integer
+          format: int64
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        meta:
+          nullable: true
+        type:
+          description: "Тип"
+          type: string
+          nullable: true
+        detailType:
+          description: "Вид детали"
+          type: string
+          nullable: true
+        position:
+          description: "Позиция"
+          type: integer
+          nullable: true
+        code:
+          description: "Штрихкод"
+          type: string
+          nullable: true
+        height:
+          description: "Высота"
+          type: number
+          format: float
+          nullable: true
+        width:
+          description: "Ширина"
+          type: number
+          format: float
+          nullable: true
+        depth:
+          description: "Толщина"
+          type: number
+          format: float
+          nullable: true
+        count:
+          description: "Количество"
+          type: number
+          format: float
+          nullable: true
+        name:
+          description: "Наименование"
+          type: string
+          nullable: true
+        comment:
+          description: "Комментарий"
+          type: string
+          nullable: true
+        label:
+          description: "(Важная информация)"
+          type: string
+          nullable: true
+        isFixing:
+          description: "Крепеж"
+          type: boolean
+          nullable: true
+        color:
+          description: "Цвет корпуса"
+          type: string
+          nullable: true
+        edge:
+          description: "Кромка"
+          type: string
+          nullable: true
+        material:
+          description: "Материал"
+          type: string
+          nullable: true
+        isCustomer:
+          description: "Материал заказчика"
+          type: boolean
+          nullable: true
+        fasteners:
+          description: "Крепеж"
+          type: string
+          nullable: true
+        isPaint:
+          description: "Комментарий"
+          type: boolean
+          nullable: true
+        isCnc:
+          description: "Присадка"
+          type: boolean
+          nullable: true
+        isBack:
+          description: "Задняя стенка"
+          type: boolean
+          nullable: true
+        isRadiusly:
+          description: "Радиусный"
+          type: boolean
+          nullable: true
+        drawing:
+          description: "Рисунок"
+          type: string
+          nullable: true
+        vendorCode:
+          description: "Артикул"
+          type: string
+          nullable: true
+        unit:
+          description: "Единица измерения"
+          type: string
+          nullable: true
+        chorda:
+          description: "Хорда"
+          type: number
+          format: float
+          nullable: true
+        series:
+          description: "Серия"
+          type: string
+          nullable: true
+        kind:
+          description: "Вид"
+          type: string
+          nullable: true
+        surface:
+          description: "Исполнение"
+          type: string
+          nullable: true
+        handle:
+          description: "Ручка"
+          type: string
+          nullable: true
+        producer:
+          description: "Поставщик"
+          type: string
+          nullable: true
+        sketches:
+          type: array
+          items:
+            $ref: '#/components/schemas/File'
+    Pack:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        subOrderID:
+          type: integer
+          format: int64
+          nullable: true
+        orderID:
+          type: integer
+          format: int64
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        code:
+          type: string
+          nullable: true
+        groupID:
+          type: integer
+          format: int64
+          nullable: true
+        pointID:
+          type: integer
+          format: int64
+          nullable: true
+        date:
+          type: string
+          format: date-time
+          nullable: true
+        storageCellID:
+          type: integer
+          format: int64
+          nullable: true
+        sectionID:
+          type: integer
+          format: int64
+          nullable: true
+        palletID:
+          type: integer
+          format: int64
+          nullable: true
+        transitWarehouseID:
+          type: integer
+          format: int64
+          nullable: true
+        departureID:
+          type: integer
+          format: int64
+          nullable: true
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/PackDetail'
+        comment:
+          type: string
+          nullable: true
+        orderNumber:
+          type: string
+          nullable: true
+    PackDetail:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        detailID:
+          type: integer
+          format: int64
+          nullable: true
+        packID:
+          type: integer
+          format: int64
+          nullable: true
+        count:
+          type: number
+          format: float
+          nullable: true
+    SubOrderWithPacks:
+      type: object
+      properties:
+        subOrderID:
+          type: integer
+          format: int64
+          nullable: true
+        Packs:
+          type: array
+          items: 
+            $ref: '#/components/schemas/Pack'
+    OrderWithPacks:
+      type: object
+      properties:
+        orderID:
+          type: integer
+          format: int64
+          nullable: true
+        SubOrdersWithPacks:
+          type: array
+          items: 
+            $ref: '#/components/schemas/SubOrderWithPacks'
+    OrdersWithPacks:
+      type: array
+      items: 
+        $ref: '#/components/schemas/OrderWithPacks'
+    SubOrderWithPackDetails:
+      type: object
+      properties:
+        subOrderID:
+          type: integer
+          format: int64
+        groupID:
+          type: integer
+          format: int64
+        pointID:
+          type: integer
+          format: int64
+        date:
+          type: string
+          format: date-time
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShortPackDetail'
+        orderNumber:
+          type: string
+    ShortPackDetail:
+      type: object
+      properties:
+        detailID:
+          type: integer
+          format: int64
+        count:
+          type: number
+          format: float
+          nullable: true
+    Point:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        sectorID:
+          type: integer
+          format: int64
+          nullable: true
+        uuid:
+          type: string
+          format: uuid
+          nullable: true
+        ip:
+          type: string
+          format: ip
+          nullable: true
+        hostname:
+          type: string
+          nullable: true
+        comment:
+          type: string
+          nullable: true
+        pointTypeID:
+          type: integer
+          format: int64
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        isOnline:
+          type: boolean
+        meta:
+          nullable: true
+        stepIDs:
+          type: array
+          items:
+            type: integer
+            format: int64
+    Sector:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        meta:
+          nullable: true
+    Employee:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        groups:
+          type: array
+          items:
+            type: integer
+            format: int64
+        sectors:
+          type: array
+          items:
+            type: integer
+            format: int64
+        role:
+          type: string
+          nullable: true
+          enum:
+            - worker
+            - master
+        categoryID:
+          type: integer
+          format: int64
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        meta:
+          nullable: true
+        login:
+          type: string
+          nullable: true
+        password:
+          type: string
+          format: password
+          nullable: true
+      required: [login, password]
+    MobileUser:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        dealer_codes:
+          type: array
+          items:
+            type: string
+        role:
+          type: string
+          nullable: true
+        login:
+          type: string
+          nullable: true
+        password:
+          type: string
+          format: password
+          nullable: true
+      required: [ login, password ]
+    Group:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        points:
+          type: array
+          items:
+            type: integer
+            format: int64
+        employees:
+          type: array
+          items:
+            oneOf:
+              - type: integer
+                format: int64
+              - $ref: '#/components/schemas/Employee'
+        meta:
+          nullable: true
+    EmployeeCategory:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        qualification:
+          type: string
+          nullable: true
+        rank:
+          type: string
+          nullable: true
+    Step:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        SectorID:
+          type: integer
+          format: int64
+          nullable: true
+    HistoryItem:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          nullable: true
+        time:
+          type: string
+          format: date-time
+          nullable: true
+        employeeID:
+          type: integer
+          format: int64
+          nullable: true
+        entity:
+          type: string
+          nullable: true
+        entityID:
+          type: integer
+          format: int64
+          nullable: true
+        field:
+          type: string
+          nullable: true
+          deprecated: true
+        action:
+          type: string
+          nullable: true
+        employee:
+          nullable: true
+        entityData:
+          nullable: true
+    EventItem:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          nullable: true
+        time:
+          type: string
+          format: date-time
+          nullable: true
+        employeeID:
+          type: integer
+          format: int64
+          nullable: true
+        mobileUserID:
+          type: integer
+          format: int64
+          nullable: true
+        entity:
+          type: string
+          nullable: true
+        entityID:
+          type: integer
+          format: int64
+          nullable: true
+        action:
+          type: string
+          nullable: true
+    BufferItem:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        time:
+          type: string
+          format: date-time
+          nullable: true
+        orderID:
+          type: integer
+          format: int64
+          nullable: true
+        reasons:
+          type: array
+          items:
+            type: integer
+            format: int64
+    BufferReason:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        description:
+          type: string
+          nullable: true
+    DefectItem:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        time:
+          type: string
+          format: date-time
+          nullable: true
+        entity:
+          type: string
+          nullable: true
+          enum:
+            - subOrder
+            - module
+            - detail
+        entityIDsWithCount:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityIDsWithCount'
+        reasons:
+          type: array
+          items:
+            type: integer
+            format: int64
+      required: [entity, entityIDsWithCount]
+    EntityIDsWithCount:
+      type: object
+      properties:
+        entityID:
+          type: integer
+          format: int64
+          nullable: true
+        count:
+          type: number
+          format: float
+          nullable: true
+    DefectInfo:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        time:
+          type: string
+          format: date-time
+          nullable: true
+        subOrderID:
+          type: integer
+          format: int64
+          nullable: true
+        reasons:
+          type: array
+          items:
+            type: integer
+            format: int64
+        group:
+          type: string
+          nullable: true
+        point:
+          type: string
+          nullable: true
+        step:
+          type: string
+          nullable: true
+    DefectReason:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        entity:
+          type: string
+          nullable: true
+          enum:
+            - subOrder
+            - module
+            - detail
+    File:
+      type: object
+      properties:
+        filename:
+          type: string
+          nullable: true
+        path:
+          type: string
+          nullable: true
+        size:
+          type: integer
+          format: int64
+          nullable: true
+    OrderType:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        iconName:
+          type: string
+          nullable: true
+    PointType:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        stepIDs:
+          type: array
+          items:
+            type: integer
+            format: int64
+    PointInfo:
+      type: object
+      properties:
+        time:
+          type: string
+          format: date-time
+          nullable: true
+        uuid:
+          type: string
+          format: uuid
+          nullable: true
+        uptime:
+          type: integer
+          format: int64
+          nullable: true
+        temperature:
+          type: number
+          format: double
+          nullable: true
+        hostname:
+          type: string
+          nullable: true
+        ip:
+          type: array
+          items:
+            $ref: '#/components/schemas/IP'
+          nullable: true
+        externalIP:
+          type: string
+        loadCpu:
+          type: number
+          format: double
+          nullable: true
+        diskTotal:
+          type: number
+          format: double
+          nullable: true
+        diskUsed:
+          type: number
+          format: double
+          nullable: true
+        diskFree:
+          type: number
+          format: double
+          nullable: true
+        diskUsedPercent:
+          type: number
+          format: double
+          nullable: true
+        memTotal:
+          type: number
+          format: double
+          nullable: true
+        memUsage:
+          type: number
+          format: double
+          nullable: true
+        power:
+          type: boolean
+          nullable: true
+        serialNumber:
+          type: string
+          nullable: true
+        appVersion:
+          type: string
+          nullable: true
+    GroupEvent:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        groupID:
+          type: integer
+          format: int64
+          nullable: true
+        pointID:
+          type: integer
+          format: int64
+          nullable: true
+        event:
+          type: string
+          nullable: true
+        time:
+          type: string
+          format: date-time
+          nullable: true
+    GroupOnPoint:
+      type: object
+      properties:
+        groupID:
+          type: integer
+          format: int64
+          nullable: true
+        pointID:
+          type: integer
+          format: int64
+          nullable: true
+    TelegramUserResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          nullable: true
+        tokenLifetime:
+          type: integer
+    IP:
+      type: object
+      properties:
+        name:
+          type: string
+        ip:
+          type: string
+    WebHookToken:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        token:
+          type: string
+          nullable: true
+        comment:
+          type: string
+          nullable: true
+        entities:
+          type: array
+          items:
+            type: string
+            enum:
+              - order
+              - subOrder
+              - module
+              - detail
+    StatusInfo:
+      type: object
+      properties:
+        time:
+          type: string
+          format: date-time
+          nullable: true
+        postgres:
+          type: string
+          nullable: true
+        redis:
+          type: string
+          nullable: true
+        clickhouse:
+          type: string
+          nullable: true
+        server1C:
+          type: string
+          nullable: true
+        version:
+          type: string
+          nullable: true
+        mode:
+          type: string
+          nullable: true
+        tgBotName:
+          type: string
+          nullable: true
+    Warehouse:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        name:
+          type: string
+          nullable: true
+    StorageCell:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        code:
+          type: string
+          nullable: true
+        warehouseID:
+          type: integer
+          format: int64
+          nullable: true
+        data:
+          type: string
+          nullable: true
+    TransitWarehouse:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        name:
+          type: string
+          nullable: true
+    Section:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        name:
+          type: string
+          nullable: true
+    Departure:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          nullable: true
+        carNumber:
+          type: string
+          nullable: true
+        seal:
+          type: stringsectors
+          nullable: true
+        transitWarehouseID:
+          type: integer
+          format: int64
+          nullable: true
+        sectionID:
+          type: integer
+          format: int64
+          nullable: true
+    ScanItem:
+      type: object
+      properties:
+        detailID:
+          type: integer
+          format: int64
+          nullable: true
+        count:
+          type: number
+          format: float
+          nullable: true
+    WebHook:
+      type: object
+      properties:
+        time:
+          type: string
+          format: date-time
+          nullable: true
+        entity:
+          type: string
+          nullable: true
+        entityID:
+          type: integer
+          format: int64
+          nullable: true
+        action:
+          type: string
+          enum:
+            - create
+            - update
+            - delete
+  securitySchemes:
+    bearerAuth:            # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
